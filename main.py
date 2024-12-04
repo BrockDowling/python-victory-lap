@@ -1,13 +1,13 @@
 # main.py
 import streamlit as st
 from utils.styles import inject_custom_styles
-from utils.shared_funcs import render_auth_page
-from utils.dashboard import render_dashboard
+from interfaces.authentication import render_auth_page
+from interfaces.dashboard import render_dashboard
 
+
+# Main application entry point. Configures the Streamlit page and manages authentication flow.
 def main():
-    """
-    Main application entry point. Configures the Streamlit page and manages authentication flow.
-    """
+
     st.set_page_config(
         page_title="VICTORY LAP",
         layout="wide",

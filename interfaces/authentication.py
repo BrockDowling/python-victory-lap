@@ -1,10 +1,11 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-from utils.db_utils import (
-    check_user_exists, 
-    create_user, 
-    get_user_details
+from utils.db import (
+    check_user_exists,
+    create_user,
+    get_user_details,
 )
+
 
 def render_auth_page():
     selected = option_menu(
