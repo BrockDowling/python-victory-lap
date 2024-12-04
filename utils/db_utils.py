@@ -47,24 +47,25 @@ def create_user(firstname, lastname, email, password, gender, weight):
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     conn = get_db_connection()
     cur = conn.cursor()
-    
     try:
-        # Insert a new user into the User table and retrieve the generated id
+        cur.execute('SELECT COUNT(*) FROM "User" WHERE email = %s', (email,))
+        if cur.fetchone()[0] > 0:
+            raise ValueError("Email already exists")
         cur.execute(
             'INSERT INTO "User" (email, password) VALUES (%s, %s) RETURNING id',
             (email, hashed_password))
         user_id = cur.fetchone()[0]
-        
-        # Insert the user's profile into the users table without providing userid
         cur.execute(
             "INSERT INTO users (firstname, lastname, gender, weight) VALUES (%s, %s, %s, %s)",
             (firstname, lastname, gender, weight))
         conn.commit()
-    
+    except ValueError as v:
+        conn.rollback()
+        raise v 
     except Exception as e:
         conn.rollback()
         raise e  # Re-raise the exception to be handled by the caller
-    
+
     finally:
         cur.close()
         conn.close()
