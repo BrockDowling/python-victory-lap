@@ -196,5 +196,5 @@ def delete_users():
 
 # get_schema()
 # reset_user_id_sequence()
-# get_users_in_db()
+get_users_in_db()
 # delete_users()

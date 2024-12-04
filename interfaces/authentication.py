@@ -38,23 +38,30 @@ def render_auth_page():
 
 
 def render_login_form():
-    with st.form(key='login_form'):
-        email = st.text_input("Email", placeholder="Enter your email")
-        password = st.text_input("Password", type="password", placeholder="Enter your password")
-        submitted = st.form_submit_button("Log In")
-        if submitted:
-            handle_login(email, password)
+    cols = st.columns([1])
+    with cols[0]:
+        with st.form(key='login_form'):
+            email = st.text_input("Email", placeholder="Enter your email")
+            password = st.text_input("Password", type="password", placeholder="Enter your password")
+            submitted = st.form_submit_button("Log In")
+            if submitted:
+                handle_login(email, password)
 
 
 def render_signup_form():
     with st.form(key='signup_form'):
+
         firstname = st.text_input("First Name", placeholder="First name")
         lastname = st.text_input("Last Name", placeholder="Last name")
         email = st.text_input("Email", placeholder="your@email.com")
         password = st.text_input("Password", type="password", placeholder="Create password")
         confirm_password = st.text_input("Confirm Password", type="password", placeholder="Confirm password")
-        gender = st.radio("Gender", options=["M", "F"], key="gender_radio", horizontal=True)
-        weight = st.number_input("Weight (lbs)", min_value=0, max_value=500)
+
+        cols = st.columns([1,1])
+        with cols[0]:
+            gender = st.radio("Gender", options=["M", "F"], key="gender_radio", horizontal=True)
+        with cols[1]:
+            weight = st.number_input("Weight (lbs)", min_value=0, max_value=500)
         submitted = st.form_submit_button("Sign Up")
         if submitted:
             handle_signup(firstname, lastname, email, password, confirm_password, gender, weight)
