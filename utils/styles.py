@@ -24,20 +24,34 @@ def inject_custom_styles():
             .stAlertContainer {
                 padding-bottom: 0;
                 text-align: center;
-                
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 999 !important;
             }
 
-            /* Form Styling */
-            .stForm {
-                padding: 10px !important; /* Reduce form padding */
-                margin-bottom: -100px !important; /* Reduce spacing below the form */
-                background-color: #0E1118 !important; /* Match the form with the app's dark theme */
-                border-radius: 10px !important; /* Rounded corners */
-                box-shadow: 0 0 14px 0 #333 !important;
+            .stForm.st-emotion-cache-qcpnpn {
+                border-color: transparent;
             }
-
+            
+             /* Reduce spacing between input elements */
             .stForm div {
-                margin-bottom: 0 !important; /* Reduce spacing between input elements */
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+            }
+
+            div[data-testid=toastContainer] {
+                align-items: center;
+            }
+           
+            div[data-testid=stToast] {
+                background-color: #64bd6440;  
+                width: 20%;
+            }
+             
+            [data-testid=toastContainer] [data-testid=stMarkdownContainer] > p {
+                font-size: 20px; font-style: normal; font-weight: 400;
+                text-align: center;
+                foreground-color: #ffffff;
             }
 
             /* Number Input Styling */
@@ -67,9 +81,23 @@ def inject_custom_styles():
                 padding: 15px;
                 margin-bottom: 20px;
                 border-radius: 10px;
-                box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+                box-shadow: 0px 2px 5px #ffffff;
             }
 
+            /* Add new checkbox container styling */
+            .stCheckbox {
+                padding-top: 2px;
+                padding-bottom: 0px;
+            }
+
+            .stColumn.st-emotion-cache-1r6slb0 {
+                padding: 10px !important;
+                background-color: #0E1118 !important;
+                border-radius: 10px !important;
+                box-shadow: 0 0 14px 0 #333 !important;
+                bottom: 20px !important;
+                z-index: 100 !important;
+            }
         </style>
         """, unsafe_allow_html=True
     )

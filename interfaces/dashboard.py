@@ -5,7 +5,8 @@ from utils.analytics import calculate_user_metrics
 from utils.db import (
     get_workout_questions,
     get_user_classes,
-    insert_workout_data
+    insert_workout_data,
+    get_user_weight
 )
 from utils.workout.workout_utils import (
     get_available_equipment,
@@ -14,7 +15,6 @@ from utils.workout.workout_utils import (
     initialize_workout_selections,
     broad_to_specific
 )
-from utils.db.db_user_queries import insert_workout_data, get_user_weight
 from utils.styles import inject_custom_styles
 
 
@@ -61,10 +61,12 @@ def render_log_workout_form():
         st.session_state.workout_selections = initialize_workout_selections()
 
     # Create columns for each section
-    cols = st.columns(4)
+    cols = st.columns(3)
 
-    # Broad category selection
+
     with cols[0]:
+
+        # Broad category selection
         st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Broad Category</p>", 
                  unsafe_allow_html=True)
         for category in broad_to_specific.keys():
@@ -82,8 +84,27 @@ def render_log_workout_form():
                 }
                 st.rerun()
 
-    # Muscle group selection
+        # Workout selection
+        st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Workout</p>", 
+                 unsafe_allow_html=True)
+        workouts = get_workouts_for_muscle(st.session_state.workout_selections['muscle_group'])
+        for workout in workouts:
+            checked = st.checkbox(
+                f"{workout}", 
+                key=f"workout_{workout}",
+                value=st.session_state.workout_selections['workout_name'] == workout
+            )
+            if checked and st.session_state.workout_selections['workout_name'] != workout:
+                st.session_state.workout_selections.update({
+                    'workout_name': workout,
+                    'equipment': get_available_equipment(workout)[0]
+                })
+                st.rerun()
+
+
     with cols[1]:
+
+        # Muscle group selection
         st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Muscle Group</p>", 
                  unsafe_allow_html=True)
         muscle_groups = get_muscles_for_category(st.session_state.workout_selections['broad_category'])
@@ -101,27 +122,9 @@ def render_log_workout_form():
                     'equipment': get_available_equipment(workouts[0])[0]
                 })
                 st.rerun()
+        
 
-    # Workout selection
-    with cols[2]:
-        st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Workout</p>", 
-                 unsafe_allow_html=True)
-        workouts = get_workouts_for_muscle(st.session_state.workout_selections['muscle_group'])
-        for workout in workouts:
-            checked = st.checkbox(
-                f"{workout}", 
-                key=f"workout_{workout}",
-                value=st.session_state.workout_selections['workout_name'] == workout
-            )
-            if checked and st.session_state.workout_selections['workout_name'] != workout:
-                st.session_state.workout_selections.update({
-                    'workout_name': workout,
-                    'equipment': get_available_equipment(workout)[0]
-                })
-                st.rerun()
-
-    # Equipment selection
-    with cols[3]:
+        # Equipment selection
         st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Equipment</p>", 
                  unsafe_allow_html=True)
         equipments = get_available_equipment(st.session_state.workout_selections['workout_name'])
@@ -134,6 +137,28 @@ def render_log_workout_form():
             if checked and st.session_state.workout_selections['equipment'] != equipment:
                 st.session_state.workout_selections['equipment'] = equipment
                 st.rerun()
+    with cols[2]:
+        # Form fields for logging the workout
+        st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Log Workout</p>", 
+            unsafe_allow_html=True)
+        with st.form(key='workout_form'):
+            row1 = st.columns(1)
+            row2 = st.columns(1)
+            row3 = st.columns(1)
+            row4 = st.columns(1)
+            for col in row1:
+                weight_used = col.number_input(
+                    "Weight(lbs)",
+                    min_value=0,
+                    max_value=1000,
+                    disabled=st.session_state.workout_selections['equipment'] == "None"
+                )
+            for col in row2:
+                sets = col.number_input("Sets", min_value=1, max_value=10)
+            for col in row3:
+                reps = col.number_input("Reps", min_value=1, max_value=20)
+            for col in row4:
+                time = col.number_input("Time(mins)", min_value=1, max_value=180)
 
     # Form fields for logging the workout
     with st.form(key='workout_form'):
@@ -149,7 +174,7 @@ def render_log_workout_form():
 
         submitted = st.form_submit_button("Log Workout")
         if submitted:
-            insert_workout_data(
+            response = insert_workout_data(
                 st.session_state.userid,
                 st.session_state.workout_selections['workout_name'],
                 st.session_state.workout_selections['muscle_group'],
@@ -158,11 +183,8 @@ def render_log_workout_form():
                 sets,
                 reps,
                 time,
-                workoutscore
-            )
-            st.success("Workout logged successfully!")
-            st.rerun()
-
+                workoutscore)
+            st.toast("Workout Logged!")
 
 def render_workout_data(metrics):
     st.markdown(f"""

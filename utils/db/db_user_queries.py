@@ -189,33 +189,32 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
         cur.execute("SELECT muscleid FROM musclegroup WHERE musclename = %s", (muscle_group,))
         muscleid_row = cur.fetchone()
         if muscleid_row is None:
-            print(f"No muscleid found for muscle_group: {muscle_group}")
-            return
-        muscleid = muscleid_row[0]
+            return {"success": False, "error": f"No muscleid found for muscle_group: {muscle_group}"}
         
+        muscleid = muscleid_row[0]
+
         # Fetch equipmentid
         cur.execute("SELECT equipmentid FROM equipment WHERE equipmentname = %s", (equipment,))
         equipmentid_row = cur.fetchone()
         if equipmentid_row is None:
-            print(f"No equipmentid found for equipment: {equipment}")
-            return
-        equipmentid = equipmentid_row[0]
+            return {"success": False, "error": f"No equipmentid found for equipment: {equipment}"}
         
+        equipmentid = equipmentid_row[0]
+
         # Get current timestamp
         current_time = datetime.now().replace(second=0, microsecond=0)
-        
+
         # Execute insert statement
         cur.execute("""
             INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged, workout_duration, workoutscore)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps, current_time, workout_duration, workoutscore))
+        
         conn.commit()
-        print("Workout data inserted successfully.")
+        return {"success": True, "message": "Workout data inserted successfully."}
     except Exception as e:
         conn.rollback()
-        print(f"Error inserting workout data: {e}")
-        import traceback
-        traceback.print_exc()
+        return {"success": False, "error": str(e)}
     finally:
         cur.close()
         conn.close()
