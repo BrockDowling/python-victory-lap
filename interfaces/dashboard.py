@@ -83,26 +83,6 @@ def render_log_workout_form():
                 }
                 st.rerun()
 
-        # Workout selection
-        st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Workout</p>", 
-                 unsafe_allow_html=True)
-        workouts = get_workouts_for_muscle(st.session_state.workout_selections['muscle_group'])
-        for workout in workouts:
-            checked = st.checkbox(
-                f"{workout}", 
-                key=f"workout_{workout}",
-                value=st.session_state.workout_selections['workout_name'] == workout
-            )
-            if checked and st.session_state.workout_selections['workout_name'] != workout:
-                st.session_state.workout_selections.update({
-                    'workout_name': workout,
-                    'equipment': get_available_equipment(workout)[0]
-                })
-                st.rerun()
-
-
-    with cols[1]:
-
         # Muscle group selection
         st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Muscle Group</p>", 
                  unsafe_allow_html=True)
@@ -121,7 +101,26 @@ def render_log_workout_form():
                     'equipment': get_available_equipment(workouts[0])[0]
                 })
                 st.rerun()
-        
+
+
+    with cols[1]:
+
+        # Workout selection
+        st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Workout</p>", 
+                 unsafe_allow_html=True)
+        workouts = get_workouts_for_muscle(st.session_state.workout_selections['muscle_group'])
+        for workout in workouts:
+            checked = st.checkbox(
+                f"{workout}", 
+                key=f"workout_{workout}",
+                value=st.session_state.workout_selections['workout_name'] == workout
+            )
+            if checked and st.session_state.workout_selections['workout_name'] != workout:
+                st.session_state.workout_selections.update({
+                    'workout_name': workout,
+                    'equipment': get_available_equipment(workout)[0]
+                })
+                st.rerun()
 
         # Equipment selection
         st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Equipment</p>", 
