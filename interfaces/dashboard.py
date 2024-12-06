@@ -14,7 +14,7 @@ from utils.workout.workout_utils import (
     initialize_workout_selections,
     broad_to_specific
 )
-from utils.db.db_user_queries import insert_workout_data
+from utils.db.db_user_queries import insert_workout_data, get_user_weight
 from utils.styles import inject_custom_styles
 
 
@@ -157,7 +157,8 @@ def render_log_workout_form():
                 weight_used if st.session_state.workout_selections['equipment'] != "None" else 0,
                 sets,
                 reps,
-                time
+                time,
+                workoutscore
             )
             st.success("Workout logged successfully!")
             st.rerun()
@@ -171,7 +172,8 @@ def render_workout_data(metrics):
             \nTotal Workouts: {metrics['total_workouts']}
             \nAvg Weight Used: {metrics['avg_weight']}
             \nTotal Weight Lifted: {metrics['weight_lifted']}
-            \nStrength Score:
+            \nStrength Score: (weight_used / get_user_weight(st.session_state.userid)) * (reps * sets))
+
         </div>
     """, unsafe_allow_html=True)
 

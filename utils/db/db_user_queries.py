@@ -47,7 +47,6 @@ def check_user_exists(email, password = None):
 
 # Alias for check_user_exists(email) for backwards compatibility
 def check_email_exists(email: str) -> bool:
-
     return check_user_exists(email)
 
 
@@ -122,7 +121,7 @@ def get_workout_questions(userid):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged FROM workoutquestions WHERE userid = %s", (userid,))
+        cur.execute("SELECT workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged, workoutscore FROM workoutquestions WHERE userid = %s", (userid,))
         workout_data = cur.fetchall()
     except Exception as e:
         print(f"Error fetching workout data: {e}")
@@ -132,6 +131,19 @@ def get_workout_questions(userid):
         conn.close()
     return workout_data
 
+def get_user_weight(userid):
+    conn = get_db_connection
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT weight FROM users where userid = %s", (userid,))
+        workout_data = cur.fetchall()
+    except Exception as e:
+        print(f"Error fetching Users weight")
+        user_weight = []
+    finally:
+        cur.close()
+        conn.close()
+    return user_weight
 
 def get_muscle_groups():
     conn = get_db_connection()
@@ -169,7 +181,7 @@ def get_class_details():
         conn.close()
 
 
-def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_used, sets, reps, workout_duration):
+def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_used, sets, reps, workout_duration, workoutscore):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -194,9 +206,9 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
         
         # Execute insert statement
         cur.execute("""
-            INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged, workout_duration)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps, current_time, workout_duration))
+            INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged, workout_duration, workoutscore)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps, current_time, workout_duration, workoutscore))
         conn.commit()
         print("Workout data inserted successfully.")
     except Exception as e:
@@ -211,9 +223,9 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
 # Function to format workout data
 def format_workout_data(workout_data):
     if not workout_data:
-        return pd.DataFrame(columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen', 'timelogged', 'muscle_group', 'equipment'])
+        return pd.DataFrame(columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen', 'timelogged', 'muscle_group', 'equipment', 'workoutscore'])
     
-    df = pd.DataFrame(workout_data, columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen', 'timelogged'])
+    df = pd.DataFrame(workout_data, columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen', 'timelogged', 'workoutscore'])
     muscle_groups = {mg[0]: mg[1] for mg in get_muscle_groups()}
     equipment_list = {eq[0]: eq[1] for eq in get_equipment_list()}
     

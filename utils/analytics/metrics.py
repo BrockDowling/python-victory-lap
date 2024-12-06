@@ -1,15 +1,16 @@
 # utils/analytics_utils.py
 import pandas as pd
-from datetime import datetime
+import psycopg2
+import datetime 
+from datetime import datetime as dt
+from datetime import timedelta
 from utils.db import format_workout_data, format_class_data
-
 # Calculate all user metrics from workout and class data
 def calculate_user_metrics(workout_data, class_data):
 
     # Format raw data
     workout_df = format_workout_data(workout_data)
     class_df = format_class_data(class_data)
-    
     # Calculate metrics
     metrics = {
         'total_workouts': len(workout_df),
@@ -17,7 +18,9 @@ def calculate_user_metrics(workout_data, class_data):
         'avg_weight': workout_df['weightused'].mean() if not workout_df.empty else 0.0,
         'streak': calculate_streak(class_df),
         'total_classes': len(class_df),
-        'attendance_rate': calculate_attendance_rate(class_df)
+        'attendance_rate': calculate_attendance_rate(class_df),
+        'lifetime Score': calc_lifetime_score(workout_df),
+        'Weekly Score': calc_weekly_score(workout_df)
     }
     
     return metrics, workout_df, class_df
@@ -49,3 +52,19 @@ def calculate_attendance_rate(class_df: pd.DataFrame) -> float:
     total_possible_classes = 7  # Replace with actual value
     attended_classes = len(class_df)
     return (attended_classes / total_possible_classes) * 100 if total_possible_classes != 0 else 0.0
+
+def calc_lifetime_score(userid):
+    cur.execute("SELECT workoutscore from workoutquestions WHERE userid = %s", (userid,))
+    LtScore = cur.fetchall()
+    return LtScore
+
+
+
+def calc_weekly_score(workout_df: pd.DataFrame) -> float:
+    current_day = datetime.date.today()
+    start_date = current_day - datetime.timedelta(days = current_day.weekday() + 1)
+    end_date = current_day + datetime.timedelta(days = 6)
+    scores = workout_df.loc[start_date:end_date, 'workoutscore']
+    return scores.sum()
+
+ 

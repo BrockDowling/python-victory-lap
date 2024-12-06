@@ -11,5 +11,6 @@ from .db_user_queries import (
     get_equipment_list,
     get_class_details,
     format_workout_data,
-    format_class_data
+    format_class_data,
+    get_user_weight
 )
