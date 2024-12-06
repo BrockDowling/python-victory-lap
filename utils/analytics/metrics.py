@@ -39,7 +39,7 @@ def calculate_user_metrics(workout_data, class_data):
 
 
 def calculate_streak(class_df: pd.DataFrame) -> int:
-    # Your existing calculate_streak function
+    # Existing calculate_streak function
     if class_df.empty:
         return 0
     class_df['dateattended'] = pd.to_datetime(class_df['dateattended'])
@@ -58,10 +58,10 @@ def calculate_streak(class_df: pd.DataFrame) -> int:
 
 
 def calculate_attendance_rate(class_df: pd.DataFrame) -> float:
-    # Your existing calculate_attendance_rate function
+    # Existing calculate_attendance_rate function
     if class_df.empty:
         return 0.0
-    total_possible_classes = 7  # Replace with actual value
+    total_possible_classes = 7
     attended_classes = len(class_df)
     return (attended_classes / total_possible_classes) * 100 if total_possible_classes != 0 else 0.0
 

@@ -181,7 +181,7 @@ def get_class_details():
         conn.close()
 
 
-def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_used, sets, reps, workout_duration, workoutscore):
+def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_used, sets, reps, timelogged, workout_score=None):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -201,14 +201,15 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
         
         equipmentid = equipmentid_row[0]
 
-        # Get current timestamp
-        current_time = datetime.now().replace(second=0, microsecond=0)
+        # If workout_score is not provided, set it to 0.0
+        if workout_score is None:
+            workout_score = 0.0
 
-        # Execute insert statement
+        # Execute insert statement with workout_score
         cur.execute("""
-            INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged, workout_duration, workoutscore)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps, current_time, workout_duration, workoutscore))
+            INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged, workoutscore)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps, timelogged, workout_score))
         
         conn.commit()
         return {"success": True, "message": "Workout data inserted successfully."}
@@ -218,6 +219,7 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
     finally:
         cur.close()
         conn.close()
+
 
 # Function to format workout data
 def format_workout_data(workout_data):
