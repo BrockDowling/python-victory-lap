@@ -158,31 +158,18 @@ def render_log_workout_form():
                 reps = col.number_input("Reps", min_value=1, max_value=20)
             for col in row4:
                 time = col.number_input("Time(mins)", min_value=1, max_value=180)
-
-    # Form fields for logging the workout
-    with st.form(key='workout_form'):
-        weight_used = st.number_input(
-            "Total Weight Used (lbs)",
-            min_value=0,
-            max_value=1000,
-            disabled=st.session_state.workout_selections['equipment'] == "None"
-        )
-        sets = st.number_input("Sets", min_value=1, max_value=10)
-        reps = st.number_input("Reps", min_value=1, max_value=20)
-        time = st.number_input("Workout time (mins)", min_value=1, max_value=180)
-
-        submitted = st.form_submit_button("Log Workout")
-        if submitted:
-            response = insert_workout_data(
-                st.session_state.userid,
-                st.session_state.workout_selections['workout_name'],
-                st.session_state.workout_selections['muscle_group'],
-                st.session_state.workout_selections['equipment'],
-                weight_used if st.session_state.workout_selections['equipment'] != "None" else 0,
-                sets,
-                reps,
-                time)
-            st.toast("Workout Logged!")
+            submitted = st.form_submit_button("Log Workout")
+            if submitted:
+                response = insert_workout_data(
+                    st.session_state.userid,
+                    st.session_state.workout_selections['workout_name'],
+                    st.session_state.workout_selections['muscle_group'],
+                    st.session_state.workout_selections['equipment'],
+                    weight_used if st.session_state.workout_selections['equipment'] != "None" else 0,
+                    sets,
+                    reps,
+                    time)
+                st.toast("Workout Logged!")
 
 def render_workout_data(metrics):
     st.markdown(f"""
