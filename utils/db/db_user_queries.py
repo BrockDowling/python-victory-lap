@@ -207,9 +207,9 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
 
         # Execute insert statement with workout_score
         cur.execute("""
-            INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged, workoutscore)
+            INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, workoutscore, timelogged)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps, timelogged, workout_score))
+        """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps, workout_score, timelogged))
         
         conn.commit()
         return {"success": True, "message": "Workout data inserted successfully."}
