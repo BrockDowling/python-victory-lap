@@ -1,10 +1,22 @@
 # utils/analytics_utils.py
 import pandas as pd
-import psycopg2
+import psycopg
 import datetime 
+from dotenv import load_dotenv
+import os
 from datetime import datetime as dt
 from datetime import timedelta
 from utils.db import format_workout_data, format_class_data
+
+# load environment variable
+load_dotenv()
+
+def get_db_connection():
+    return psycopg.connect(os.getenv("DATABASE_URL"))
+
+conn = get_db_connection()
+cur = conn.cursor()
+
 # Calculate all user metrics from workout and class data
 def calculate_user_metrics(workout_data, class_data):
 
@@ -54,9 +66,13 @@ def calculate_attendance_rate(class_df: pd.DataFrame) -> float:
     return (attended_classes / total_possible_classes) * 100 if total_possible_classes != 0 else 0.0
 
 def calc_lifetime_score(userid):
-    cur.execute("SELECT workoutscore from workoutquestions WHERE userid = %s", (userid,))
-    LtScore = cur.fetchall()
-    return LtScore
+    try:
+        cur.execute("SELECT SUM(workoutscore) from workoutquestions WHERE userid = %s", (userid,))
+        LtScore = cur.fetchone()[0]
+        return float(LtScore) if LtScore is not None else 0.0
+    except Exception as e: 
+        print(f"Error calculating lifetime score for user {userid}: {e}")
+        return 0.0
 
 
 
