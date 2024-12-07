@@ -81,7 +81,6 @@ def inject_custom_styles():
                 padding: 15px;
                 margin-bottom: 20px;
                 border-radius: 10px;
-                box-shadow: 0px 0px 8px #EB4034;
             }
 
             /* Add new checkbox container styling */
@@ -94,7 +93,7 @@ def inject_custom_styles():
                 padding: 10px !important;
                 background-color: #0E1118 !important;
                 border-radius: 10px !important;
-                box-shadow: 0 0 14px 0 #333 !important;
+                box-shadow: 0 0 14px 2px #333 !important;
                 bottom: 20px !important;
                 z-index: 100 !important;
             }

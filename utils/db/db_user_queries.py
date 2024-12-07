@@ -103,21 +103,6 @@ def get_user_details(email):
     return user
 
 
-def get_user_classes(userid):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("SELECT classid, dateattended, daysattended FROM userclasses WHERE userid = %s", (userid,))
-        class_data = cur.fetchall()
-    except Exception as e:
-        print(f"Error fetching class data: {e}")
-        class_data = []
-    finally:
-        cur.close()
-        conn.close()
-    return class_data
-
-
 def get_workout_questions(userid):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -152,18 +137,6 @@ def get_equipment_list():
         cur.execute("SELECT equipmentid, equipmentname FROM equipment")
         equipment = cur.fetchall()
         return equipment
-    finally:
-        cur.close()
-        conn.close()
-
-
-def get_class_details():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("SELECT classid, classname FROM classes")
-        classes = cur.fetchall()
-        return classes
     finally:
         cur.close()
         conn.close()
@@ -211,25 +184,13 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
 
 # Function to format workout data
 def format_workout_data(workout_data):
-    if not workout_data:
-        return pd.DataFrame(columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen', 'date_logged', 'muscle_group', 'equipment'])
-    
+
     df = pd.DataFrame(workout_data, columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen', 'timelogged'])
+
     muscle_groups = {mg[0]: mg[1] for mg in get_muscle_groups()}
     equipment_list = {eq[0]: eq[1] for eq in get_equipment_list()}
     
     df['muscle_group'] = df['muscleid'].map(muscle_groups.get)
     df['equipment'] = df['equipmentid'].map(equipment_list.get)
     
-    return df
-
-
-# Function to format class data
-def format_class_data(class_data):
-    if not class_data:
-        return pd.DataFrame(columns=['classid', 'dateattended', 'daysattended', 'classname'])
-    
-    df = pd.DataFrame(class_data, columns=['classid', 'dateattended', 'daysattended'])
-    class_details = {cd[0]: cd[1] for cd in get_class_details()}
-    df['classname'] = df['classid'].map(class_details.get)
     return df
