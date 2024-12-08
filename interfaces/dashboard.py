@@ -13,7 +13,6 @@ from utils.workout.workout_utils import (
     initialize_workout_selections,
     broad_to_specific)
 from utils.styles import inject_custom_styles
-import time
 
 def render_dashboard():
     # Check if user is logged in
@@ -54,13 +53,11 @@ def render_dashboard():
 
     if selected == "Log Workout":
         for percent_complete in range(101):
-            time.sleep(0.5)  # Simulate some processing time
             progress_bar.progress(percent_complete)
             status_text.text(f"Loading Log Workout: {percent_complete}%")
         render_log_workout_form()
     elif selected == "Workout Data":
         for percent_complete in range(101):
-            time.sleep(0.5)  # Simulate some processing time
             progress_bar.progress(percent_complete)
             status_text.text(f"Loading Workout Data: {percent_complete}%")
         render_workout_data(metrics, workout_df)
