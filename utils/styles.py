@@ -33,10 +33,6 @@ def inject_custom_styles():
             .stProgress > div > div > div > div {
                 background-color: #EB4034;
             }
-
-            div[data-testid=toastContainer] {
-                align-items: center;
-            }
            
             div[data-testid=stToast] {
                 background-color: #64bd6440;  

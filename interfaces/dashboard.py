@@ -74,45 +74,46 @@ def render_log_workout_form():
     # Create columns for each section
     cols = st.columns((.1, 2.5, .1, 2.5, .1))
 
-
     with cols[1]:
         # Broad category selection
         innercols = st.columns((1, .1, 1))
         with innercols[0]:
             st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Broad Category</p>", 
                     unsafe_allow_html=True)
-            for category in broad_to_specific.keys():
-                checked = st.checkbox(
-                    f"{category}", 
-                    key=f"broad_{category}",
-                    value=st.session_state.workout_selections['broad_category'] == category
-                )
-                if checked and st.session_state.workout_selections['broad_category'] != category:
-                    st.session_state.workout_selections = {
-                        'broad_category': category,
-                        'muscle_group': get_muscles_for_category(category)[0],
-                        'workout_name': get_workouts_for_muscle(get_muscles_for_category(category)[0])[0],
-                        'equipment': get_available_equipment(get_workouts_for_muscle(get_muscles_for_category(category)[0])[0])[0]
-                    }
+            # Radio buttons for broad category selection
+            broad_category = st.radio(
+                "Choose Broad Category",
+                options=list(broad_to_specific.keys()), 
+                key="broad_category"
+            )
+            # Force session state to update immediately
+            if broad_category != st.session_state.workout_selections['broad_category']:
+                st.session_state.workout_selections = {
+                    'broad_category': broad_category,
+                    'muscle_group': None,  # No muscle group selected yet
+                    'workout_name': None,  # No workout selected yet
+                    'equipment': None      # No equipment selected yet
+                }
 
         # Muscle group selection
         with innercols[2]:
             st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Muscle Group</p>", 
                     unsafe_allow_html=True)
-            muscle_groups = get_muscles_for_category(st.session_state.workout_selections['broad_category'])
-            for muscle in muscle_groups:
-                checked = st.checkbox(
-                    f"{muscle}", 
-                    key=f"muscle_{muscle}",
-                    value=st.session_state.workout_selections['muscle_group'] == muscle
-                )
-                if checked and st.session_state.workout_selections['muscle_group'] != muscle:
-                    workouts = get_workouts_for_muscle(muscle)
-                    st.session_state.workout_selections.update({
-                        'muscle_group': muscle,
-                        'workout_name': workouts[0],
-                        'equipment': get_available_equipment(workouts[0])[0]
-                    })
+            # Update available muscle groups based on selected broad category
+            muscle_groups = get_muscles_for_category(st.session_state.workout_selections['broad_category']) if st.session_state.workout_selections['broad_category'] else []
+            muscle_group = st.radio(
+                "Choose Muscle Group", 
+                options=muscle_groups, 
+                key="muscle_group"
+            )
+            # Force session state to update immediately
+            if muscle_group != st.session_state.workout_selections['muscle_group']:
+                workouts = get_workouts_for_muscle(muscle_group)
+                st.session_state.workout_selections.update({
+                    'muscle_group': muscle_group,
+                    'workout_name': None,  # Reset workout selection
+                    'equipment': None      # Reset equipment selection
+                })
 
     with cols[3]:
         # Workout selection
@@ -120,33 +121,34 @@ def render_log_workout_form():
         with innercols[0]:
             st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Workout</p>", 
                     unsafe_allow_html=True)
-            workouts = get_workouts_for_muscle(st.session_state.workout_selections['muscle_group'])
-            for workout in workouts:
-                checked = st.checkbox(
-                    f"{workout}", 
-                    key=f"workout_{workout}",
-                    value=st.session_state.workout_selections['workout_name'] == workout
-                )
-                if checked and st.session_state.workout_selections['workout_name'] != workout:
-                    st.session_state.workout_selections.update({
-                        'workout_name': workout,
-                        'equipment': get_available_equipment(workout)[0]
-                    })
-
+            # Update available workouts based on selected muscle group
+            workouts = get_workouts_for_muscle(st.session_state.workout_selections['muscle_group']) if st.session_state.workout_selections['muscle_group'] else []
+            workout = st.radio(
+                "Choose Workout", 
+                options=workouts, 
+                key="workout_name"
+            )
+            # Force session state to update immediately
+            if workout != st.session_state.workout_selections['workout_name']:
+                st.session_state.workout_selections.update({
+                    'workout_name': workout,
+                    'equipment': None  # Reset equipment selection
+                })
 
         # Equipment selection
         with innercols[2]:
             st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Equipment</p>", 
                     unsafe_allow_html=True)
-            equipments = get_available_equipment(st.session_state.workout_selections['workout_name'])
-            for equipment in equipments:
-                checked = st.checkbox(
-                    f"{equipment}", 
-                    key=f"equipment_{equipment}",
-                    value=st.session_state.workout_selections['equipment'] == equipment
-                )
-                if checked and st.session_state.workout_selections['equipment'] != equipment:
-                    st.session_state.workout_selections['equipment'] = equipment
+            # Update available equipment based on selected workout
+            equipments = get_available_equipment(st.session_state.workout_selections['workout_name']) if st.session_state.workout_selections['workout_name'] else []
+            equipment = st.radio(
+                "Choose Equipment", 
+                options=equipments, 
+                key="equipment"
+            )
+            # Force session state to update immediately
+            if equipment != st.session_state.workout_selections['equipment']:
+                st.session_state.workout_selections['equipment'] = equipment
 
     st.write("")
 
@@ -180,7 +182,8 @@ def render_log_workout_form():
                     weight_used if st.session_state.workout_selections['equipment'] != "None" else 0,
                     sets,
                     reps,)
-                st.toast("Workout Logged!")
+                st.success("Workout Logged!")
+
 
 
 def render_workout_data(metrics, workout_df):
