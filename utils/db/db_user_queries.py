@@ -1,7 +1,6 @@
 # utils/db_utils.py
 import bcrypt
 import psycopg
-from datetime import datetime
 from dotenv import load_dotenv
 import os
 import pandas as pd
@@ -61,67 +60,66 @@ def create_user(firstname, lastname, email, password, gender, weight):
     cur = conn.cursor()
     
     try:
-        # Insert a new user into the User table and retrieve the generated id
+        # Insert into User table and get the generated id
         cur.execute(
             'INSERT INTO "User" (email, password) VALUES (%s, %s) RETURNING id',
             (email, hashed_password))
-        user_id = cur.fetchone()[0]
-        
-        # Insert the user's profile into the users table
+        user_id = cur.fetchone()[0]  # Get the user id after creation
+
+        # Insert into users table, omitting the userid since it is auto-generated
         cur.execute(
-            "INSERT INTO users (userid, firstname, lastname, gender, weight) VALUES (%s, %s, %s, %s, %s)",
-            (user_id, firstname, lastname, gender, weight))
+            """
+            INSERT INTO users (firstname, lastname, gender, weight) 
+            VALUES (%s, %s, %s, %s)
+            """,
+            (firstname, lastname, gender, weight))
+
+        # Commit the transaction
         conn.commit()
-        return user_id
-    
+
+        return user_id  # Return the user id
     except Exception as e:
         conn.rollback()
         raise e
-    
     finally:
         cur.close()
         conn.close()
-
 
 def get_user_details(email):
     conn = get_db_connection()
     cur = conn.cursor()
     
-    cur.execute(
-        """
-        SELECT u.userid, u.firstname, u.lastname, u.gender, u.weight
-        FROM users u
-        JOIN "User" usr ON u.userid = usr.id  -- Changed to use usr.id instead of usr.userid
-        WHERE usr.email = %s
-        """,
-        (email,)
-    )
-    user = cur.fetchone()
-    cur.close()
-    conn.close()
-    return user
-
-
-def get_user_classes(userid):
-    conn = get_db_connection()
-    cur = conn.cursor()
     try:
-        cur.execute("SELECT classid, dateattended, daysattended FROM userclasses WHERE userid = %s", (userid,))
-        class_data = cur.fetchall()
+        # Join the "User" and "users" tables based on the user id
+        cur.execute(
+            """
+            SELECT u.userid, u.firstname, u.lastname, u.gender, u.weight
+            FROM users u
+            JOIN "User" usr ON u.userid = usr.id
+            WHERE usr.email = %s
+            """,
+            (email,)
+        )
+        user = cur.fetchone()
+        
+        # If no user is found, return None
+        if user is None:
+            return None
+        
+        return user
     except Exception as e:
-        print(f"Error fetching class data: {e}")
-        class_data = []
+        print(f"Error fetching user details: {e}")
+        return None
     finally:
         cur.close()
         conn.close()
-    return class_data
 
 
 def get_workout_questions(userid):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, timelogged, workoutscore FROM workoutquestions WHERE userid = %s", (userid,))
+        cur.execute("SELECT workoutname, muscleid, equipmentid, weightused, setschosen, repschosen FROM workoutquestions WHERE userid = %s", (userid,))
         workout_data = cur.fetchall()
     except Exception as e:
         print(f"Error fetching workout data: {e}")
@@ -169,19 +167,7 @@ def get_equipment_list():
         conn.close()
 
 
-def get_class_details():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("SELECT classid, classname FROM classes")
-        classes = cur.fetchall()
-        return classes
-    finally:
-        cur.close()
-        conn.close()
-
-
-def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_used, sets, reps, timelogged, workout_score=None):
+def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_used, sets, reps):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -201,15 +187,11 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
         
         equipmentid = equipmentid_row[0]
 
-        # If workout_score is not provided, set it to 0.0
-        if workout_score is None:
-            workout_score = 0.0
-
-        # Execute insert statement with workout_score
+        # Execute insert statement without the extra workout_score
         cur.execute("""
-            INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen, workoutscore, timlogged)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps, workout_score, timelogged))
+            INSERT INTO workoutquestions (userid, workoutname, muscleid, equipmentid, weightused, setschosen, repschosen)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (userid, workout_name, muscleid, equipmentid, weight_used, sets, reps))
         
         conn.commit()
         return {"success": True, "message": "Workout data inserted successfully."}
@@ -223,25 +205,12 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
 
 # Function to format workout data
 def format_workout_data(workout_data):
-    if not workout_data:
-        return pd.DataFrame(columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen', 'timelogged', 'muscle_group', 'equipment', 'workoutscore'])
-    
-    df = pd.DataFrame(workout_data, columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen', 'timelogged', 'workoutscore'])
+    df = pd.DataFrame(workout_data, columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen'])
+
     muscle_groups = {mg[0]: mg[1] for mg in get_muscle_groups()}
     equipment_list = {eq[0]: eq[1] for eq in get_equipment_list()}
     
     df['muscle_group'] = df['muscleid'].map(muscle_groups.get)
     df['equipment'] = df['equipmentid'].map(equipment_list.get)
     
-    return df
-
-
-# Function to format class data
-def format_class_data(class_data):
-    if not class_data:
-        return pd.DataFrame(columns=['classid', 'dateattended', 'daysattended', 'classname'])
-    
-    df = pd.DataFrame(class_data, columns=['classid', 'dateattended', 'daysattended'])
-    class_details = {cd[0]: cd[1] for cd in get_class_details()}
-    df['classname'] = df['classid'].map(class_details.get)
     return df

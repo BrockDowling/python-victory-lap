@@ -194,7 +194,7 @@ def delete_users():
 
 # Uncomment needed tool below to execute
 
-# get_schema()
+get_schema()
 # reset_user_id_sequence()
-get_users_in_db()
+#get_users_in_db()
 # delete_users()
