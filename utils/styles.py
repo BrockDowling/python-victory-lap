@@ -89,13 +89,18 @@ def inject_custom_styles():
                 padding-bottom: 0px;
             }
 
-            .stColumn.st-emotion-cache-1r6slb0 {
+            .stColumn.st-emotion-cache-1we84oy {
                 padding: 10px !important;
+                margin-top: 10px;
                 background-color: #0E1118 !important;
                 border-radius: 10px !important;
-                box-shadow: 0 0 14px 2px #333 !important;
-                bottom: 20px !important;
+                border: 1px solid rgba(235, 64, 52, 0.4);
+                box-shadow: rgba(235, 64, 52, 0.4) 0px 5px, rgba(235, 64, 52, 0.3) 0px 10px, rgba(235, 64, 52, 0.2) 0px 15px, rgba(235, 64, 52, 0.1) 0px 20px, rgba(235, 64, 52, 0.05) 0px 25px, rgba(235, 64, 52, 0.4) 0px -5px, rgba(235, 64, 52, 0.3) 0px -10px, rgba(235, 64, 52, 0.2) 0px -15px, rgba(235, 64, 52, 0.1) 0px -20px, rgba(235, 64, 52, 0.05) 0px -25px;
                 z-index: 100 !important;
+            }
+
+            .st-emotion-cache-0.elp1w7k0 {
+                width: 100%;
             }
         </style>
         """, unsafe_allow_html=True

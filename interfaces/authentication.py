@@ -1,4 +1,7 @@
 import streamlit as st
+import psycopg
+import os
+from dotenv import load_dotenv
 from streamlit_option_menu import option_menu
 from utils.db import (
     check_user_exists,
@@ -6,35 +9,43 @@ from utils.db import (
     get_user_details,
 )
 
+# Load environment variables
+load_dotenv()
+
+
+# Connect to the DB
+def get_db_connection():
+    return psycopg.connect(os.getenv("DATABASE_URL"))
 
 def render_auth_page():
-    selected = option_menu(
-    menu_title="VICTORY LAP   ",
-    options=["Login", "Sign Up"],
-    icons=['person', 'person-plus'],
-    default_index=0,
-    orientation="horizontal",
-    styles={
-        "menu-title": {"font-size": "30px", "font-weight": "bold"},
-        "menu-icon": {"color": "#0E1118", "font-size": "0px"},
-        "container": {"padding": "0", "width": "250px", "background-color": "#0E1118"},
-        "icon": {"font-size": "20px"},
-        "nav-link": {"margin": "0", "font-size": "15px", "background-color": "#393939", "border": "1px solid #ffffff"},
-        "nav-link-selected": {"background-color": "#eb4034"},
-    })
-
-    col1, col2, col3 = st.columns([1, 1.5, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
+        selected = option_menu(
+            menu_title="VICTORY LAP",
+            options=["Login", "Join"],
+            icons=['person', 'person-plus'],
+            default_index=0,
+            orientation="horizontal",
+            styles={
+                "menu-title": {"font-size": "30px", "text-align": "center", "font-weight": "bold"},
+                "menu-icon": {"color": "#0E1118", "font-size": "0px"},
+                "container": {"padding": "2px", "width": "95%", "background-color": "#0E1118"},
+                "icon": {"font-size": "20px"},
+                "nav-link": {"margin": "0", "font-size": "15px", "background-color": "#393939", "border": "1px solid #ffffff"},
+                "nav-link-selected": {"background-color": "#eb4034"},
+            })
+        
+        # Initialize auth_tab if it doesn't exist
         if "auth_tab" not in st.session_state:
             st.session_state["auth_tab"] = "Login"
 
-        if st.session_state["auth_tab"] in ["Login", "Sign Up"]:
-            if selected == "Login":
-                st.session_state["auth_tab"] = "Login"
-                render_login_form()
-            elif selected == "Sign Up":
-                st.session_state["auth_tab"] = "Sign Up"
-                render_signup_form()
+        # Update session state based on selection
+        if selected == "Login":
+            st.session_state["auth_tab"] = "Login"
+            render_login_form()
+        elif selected == "Join":  # Changed from "Sign Up" to "Join"
+            st.session_state["auth_tab"] = "Join"  # Changed from "Sign Up" to "Join"
+            render_signup_form()
 
 
 def render_login_form():
@@ -81,16 +92,43 @@ def handle_login(email, password):
 
 
 def handle_signup(firstname, lastname, email, password, confirm_password, gender, weight):
+    # First validate all required fields
     if not all([firstname, lastname, email, password, confirm_password]):
         st.error("Please fill out all required fields")
-    elif password != confirm_password:
+        return
+    
+    if password != confirm_password:
         st.error("Passwords do not match")
-    else:
-        try:
-            create_user(firstname, lastname, email, password, gender, weight)
-            st.success("Account created! Please log in.")
-        except Exception as e:
-            st.error(f"Signup error: {str(e)}")
+        return
+        
+    # Check if weight is valid
+    if not weight or weight <= 0:
+        st.error("Please enter a valid weight")
+        return
+
+    try:
+        # Check for existing email
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        cur.execute("SELECT email FROM \"User\" WHERE email = %s", (email,))
+        taken_emails = cur.fetchall()
+        
+        if taken_emails:  # If there are any results, email exists
+            st.error("This email is already taken!")
+            return
+            
+        # If we get here, attempt to create the user
+        create_user(firstname, lastname, email, password, gender, weight)
+        st.success("Account created! Please log in.")
+        
+    except Exception as e:
+        st.error(f"Signup error: {str(e)}")
+    finally:
+        if 'cur' in locals():
+            cur.close()
+        if 'conn' in locals():
+            conn.close()
 
 
 def update_session_state(user_details, email):
