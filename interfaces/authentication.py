@@ -43,17 +43,18 @@ def render_auth_page():
         if selected == "Login":
             st.session_state["auth_tab"] = "Login"
             render_login_form()
-        elif selected == "Join":  # Changed from "Sign Up" to "Join"
-            st.session_state["auth_tab"] = "Join"  # Changed from "Sign Up" to "Join"
+        elif selected == "Join":
+            st.session_state["auth_tab"] = "Join"
             render_signup_form()
 
 
 def render_login_form():
-    cols = st.columns([1])
-    with cols[0]:
-        with st.form(key='login_form'):
-            email = st.text_input("Email", placeholder="Enter your email")
-            password = st.text_input("Password", type="password", placeholder="Enter your password")
+    with st.container():
+        with st.form(key='login_form', clear_on_submit=True):
+            email = st.text_input("Email", key="login_email", placeholder="Email")
+            
+            password = st.text_input("Password", type="password", key="login_password", placeholder="Password")
+            
             submitted = st.form_submit_button("Log In")
             if submitted:
                 handle_login(email, password)
@@ -83,7 +84,7 @@ def handle_login(email, password):
         user_details = get_user_details(email)
         if user_details:
             update_session_state(user_details, email)
-            st.success("Successfully logged in!")
+            st.session_state.authentication_status = "success"
             st.rerun()
         else:
             st.error("User details not found. Please try again.")
@@ -92,7 +93,7 @@ def handle_login(email, password):
 
 
 def handle_signup(firstname, lastname, email, password, confirm_password, gender, weight):
-    # First validate all required fields
+    # Validates all required fields
     if not all([firstname, lastname, email, password, confirm_password]):
         st.error("Please fill out all required fields")
         return

@@ -1,4 +1,5 @@
 # utils/db_utils.py
+import streamlit as st
 import bcrypt
 import psycopg
 from dotenv import load_dotenv
@@ -130,7 +131,8 @@ def get_workout_questions(userid):
         conn.close()
     return workout_data
 
-
+# Cache static musclegroups permanently
+@st.cache_data
 def get_muscle_groups():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -142,7 +144,8 @@ def get_muscle_groups():
         cur.close()
         conn.close()
 
-
+# Cache static equipmentlist permanently
+@st.cache_data
 def get_equipment_list():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -192,6 +195,8 @@ def insert_workout_data(userid, workout_name, muscle_group, equipment, weight_us
 
 
 # Function to format workout data
+# Cache the mapping function since it uses static lookup data
+@st.cache_data
 def format_workout_data(workout_data):
     df = pd.DataFrame(workout_data, columns=['workoutname', 'muscleid', 'equipmentid', 'weightused', 'setschosen', 'repschosen'])
 

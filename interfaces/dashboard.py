@@ -2,22 +2,25 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 from utils.analytics import calculate_user_metrics
+from interfaces.authentication import render_login_form
 from utils.db import (
     get_workout_questions,
-    insert_workout_data
-)
+    insert_workout_data)
 from utils.workout.workout_utils import (
     get_available_equipment,
     get_workouts_for_muscle,
     get_muscles_for_category,
     initialize_workout_selections,
-    broad_to_specific
-)
+    broad_to_specific)
 from utils.styles import inject_custom_styles
 
 
 def render_dashboard():
-
+    # Check if user is logged in
+    if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+        # If not logged in, show the login form
+        render_login_form()
+        return
     # Load and process data
     userid = st.session_state.get('userid')
     user_weight = st.session_state.get('weight')
@@ -81,7 +84,7 @@ def render_log_workout_form():
                         'workout_name': get_workouts_for_muscle(get_muscles_for_category(category)[0])[0],
                         'equipment': get_available_equipment(get_workouts_for_muscle(get_muscles_for_category(category)[0])[0])[0]
                     }
-                    st.rerun()
+
         # Muscle group selection
         with innercols[2]:
             st.write("<p style='color: #EB4034; border: solid 1px white; border-radius: 8px; text-align: center;'>Muscle Group</p>", 
@@ -100,7 +103,7 @@ def render_log_workout_form():
                         'workout_name': workouts[0],
                         'equipment': get_available_equipment(workouts[0])[0]
                     })
-                    st.rerun()
+
     with cols[3]:
         # Workout selection
         innercols = st.columns((1, .1, 1))
@@ -119,7 +122,7 @@ def render_log_workout_form():
                         'workout_name': workout,
                         'equipment': get_available_equipment(workout)[0]
                     })
-                    st.rerun()
+
 
         # Equipment selection
         with innercols[2]:
@@ -134,7 +137,7 @@ def render_log_workout_form():
                 )
                 if checked and st.session_state.workout_selections['equipment'] != equipment:
                     st.session_state.workout_selections['equipment'] = equipment
-                    st.rerun()
+
     st.write("")
 
     cols = st.columns((1, 2, 1))
@@ -174,45 +177,66 @@ def render_workout_data(metrics, workout_df):
     # Create columns for metrics card
     cols = st.columns((1.5, .1, 1.5, .1, 1.5))
 
-    with cols[2]:
-        st.write("<h4 style='color: #EB4034; text-align: center;'>Workout Analysis</h4>", unsafe_allow_html=True)
-        # Use the pre-calculated strength scores from workout_df
-        analysis_df = workout_df[['workoutname', 'strength_score', 'weightused']].copy()
+    if workout_df.empty:
+        # Display "No data available" in all three cards
+        with cols[2]:
+            st.write("<h4 style='color: #EB4034; text-align: center;'>Workout Analysis</h4>", unsafe_allow_html=True)
+            st.write("")
+            st.write("<p style='color: #ffffff; text-align: center;'>No data available</p>", unsafe_allow_html=True)
+            st.write("")
+            st.write("")
+        with cols[0]:
+            st.write("<h4 style='color: #EB4034; text-align: center;'>Workouts by Muscle Group</h4>", unsafe_allow_html=True)
+            st.write("")
+            st.write("<p style='color: #ffffff; text-align: center;'>No data available</p>", unsafe_allow_html=True)
+            st.write("")
+            st.write("")
+        with cols[4]:
+            st.write("<h4 style='color: #EB4034; text-align: center;'>Max Weight by Exercise</h4>", unsafe_allow_html=True)
+            st.write("")
+            st.write("<p style='color: #ffffff; text-align: center;'>No data available</p>", unsafe_allow_html=True)
+            st.write("")
+            st.write("")
+    else:
+        with cols[2]:
+            st.write("<h4 style='color: #EB4034; text-align: center;'>Workout Analysis</h4>", unsafe_allow_html=True)
+            # Use the pre-calculated strength scores from workout_df
+            analysis_df = workout_df[['workoutname', 'strength_score', 'weightused']].copy()
+            
+            # Filter out workouts with a strength score of 0
+            analysis_df = analysis_df[analysis_df['strength_score'] > 0]
+            
+            # Get the maximum strength score for each workout
+            analysis_df = analysis_df.groupby('workoutname').agg(
+                max_strength_score=('strength_score', 'max'),
+                max_weight_lifted=('weightused', 'max')
+            ).reset_index()
+            
+            # Sort values by max_strength_score for clarity
+            analysis_df = analysis_df.sort_values('max_strength_score', ascending=False)
+            
+            # Display the workout analysis dataframe
+            st.dataframe(
+                analysis_df[['workoutname', 'max_strength_score']],  # Only show relevant columns
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "workoutname": st.column_config.Column("Workout Name", width="small"),
+                    "max_strength_score": st.column_config.NumberColumn(
+                        "Max Strength Score",
+                        help="Score = (Weight * Reps * Sets) / Body Weight",
+                        format="%.3f"
+                    ),
+                }
+            )
         
-        # Filter out workouts with a strength score of 0
-        analysis_df = analysis_df[analysis_df['strength_score'] > 0]
-        
-        # Get the maximum strength score for each workout
-        analysis_df = analysis_df.groupby('workoutname').agg(
-            max_strength_score=('strength_score', 'max'),
-            max_weight_lifted=('weightused', 'max')
-        ).reset_index()
-        
-        # Sort values by max_strength_score for clarity
-        analysis_df = analysis_df.sort_values('max_strength_score', ascending=False)
-        
-        # Display the workout analysis dataframe
-        st.dataframe(
-            analysis_df[['workoutname', 'max_strength_score']],  # Only show relevant columns
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "workoutname": st.column_config.Column("Workout Name", width="small"),
-                "max_strength_score": st.column_config.NumberColumn(
-                    "Max Strength Score",
-                    help="Score = (Weight * Reps * Sets) / Body Weight",
-                    format="%.3f"
-                ),
-            }
-        )
+        with cols[0]:
+            st.write("<h4 style='color: #EB4034; text-align: center;'>Workouts by Muscle Group</h4>", unsafe_allow_html=True)
+            muscle_group_counts = workout_df['muscle_group'].value_counts()
+            st.bar_chart(muscle_group_counts, color='#EB4034')
 
-    with cols[0]:
-        st.write("<h4 style='color: #EB4034; text-align: center;'>Workouts by Muscle Group</h4>", unsafe_allow_html=True)
-        muscle_group_counts = workout_df['muscle_group'].value_counts()
-        st.bar_chart(muscle_group_counts, color='#EB4034')
-
-    with cols[4]:
-        st.write("<h4 style='color: #EB4034; text-align: center;'>Max Weight by Exercise</h4>", unsafe_allow_html=True)
-        max_weight_df = workout_df.groupby('workoutname').agg(max_weight_lifted=('weightused', 'max')).reset_index()
-        max_weight_df = max_weight_df.sort_values('max_weight_lifted', ascending=False)
-        st.bar_chart(max_weight_df.set_index('workoutname')['max_weight_lifted'], color='#EB4034')
+        with cols[4]:
+            st.write("<h4 style='color: #EB4034; text-align: center;'>Max Weight by Exercise</h4>", unsafe_allow_html=True)
+            max_weight_df = workout_df.groupby('workoutname').agg(max_weight_lifted=('weightused', 'max')).reset_index()
+            max_weight_df = max_weight_df.sort_values('max_weight_lifted', ascending=False)
+            st.bar_chart(max_weight_df.set_index('workoutname')['max_weight_lifted'], color='#EB4034')

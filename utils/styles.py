@@ -22,21 +22,12 @@ def inject_custom_styles():
 
             /* Alert Styling */
             .stAlertContainer {
-                padding-bottom: 0;
+                padding-bottom: 5px;
+                padding-top: 5px;
                 text-align: center;
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 999 !important;
-            }
-
-            .stForm.st-emotion-cache-qcpnpn {
-                border-color: transparent;
-            }
-            
-             /* Reduce spacing between input elements */
-            .stForm div {
-                margin-top: 0 !important;
-                margin-bottom: 0 !important;
             }
 
             div[data-testid=toastContainer] {

@@ -10,18 +10,16 @@ def calculate_user_metrics(workout_data, user_weight):
     workout_df = workout_df[workout_df['weightused'] >= 1]
 
     # Calculate strength scores if we have user weight and valid workout data
-    if user_weight and not workout_df.empty:
-        workout_df['strength_score'] = (
-            (workout_df['weightused'] * workout_df['repschosen'] * workout_df['setschosen']) / user_weight).round(3)
-    else:
-        workout_df['strength_score'] = 0
-    
+
+    workout_df['strength_score'] = (
+        (workout_df['weightused'] * workout_df['repschosen'] * workout_df['setschosen']) / user_weight).round(3)
+
     # Calculate metrics
     metrics = {
         'total_workouts': len(workout_df),
-        'weight_lifted': workout_df['weightused'].sum() if not workout_df.empty else 0,
-        'avg_weight': workout_df['weightused'].mean() if not workout_df.empty else 0.0,
-        'max_strength_score': workout_df['strength_score'].max() if not workout_df.empty else 0.0
+        'weight_lifted': workout_df['weightused'].sum(),
+        'avg_weight': workout_df['weightused'].mean(),
+        'max_strength_score': workout_df['strength_score'].max()
     }
     
     return metrics, workout_df
