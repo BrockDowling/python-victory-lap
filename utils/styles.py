@@ -29,6 +29,10 @@ def inject_custom_styles():
                 top: 0 !important;
                 z-index: 999 !important;
             }
+            /* Progress bar styling */
+            .stProgress > div > div > div > div {
+                background-color: #EB4034;
+            }
 
             div[data-testid=toastContainer] {
                 align-items: center;

@@ -13,7 +13,7 @@ from utils.workout.workout_utils import (
     initialize_workout_selections,
     broad_to_specific)
 from utils.styles import inject_custom_styles
-
+import time
 
 def render_dashboard():
     # Check if user is logged in
@@ -49,12 +49,25 @@ def render_dashboard():
                 "nav-link-selected": {"background-color": "#eb4034"},
             })
 
-    # Display content based on selected option
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+
     if selected == "Log Workout":
+        for percent_complete in range(101):
+            time.sleep(0.5)  # Simulate some processing time
+            progress_bar.progress(percent_complete)
+            status_text.text(f"Loading Log Workout: {percent_complete}%")
         render_log_workout_form()
     elif selected == "Workout Data":
+        for percent_complete in range(101):
+            time.sleep(0.5)  # Simulate some processing time
+            progress_bar.progress(percent_complete)
+            status_text.text(f"Loading Workout Data: {percent_complete}%")
         render_workout_data(metrics, workout_df)
 
+    # Remove the progress bar and status text after loading
+    progress_bar.empty()
+    status_text.empty()
 
 def render_log_workout_form():
     # Initialize session state variables if they don't exist
