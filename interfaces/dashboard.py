@@ -38,7 +38,7 @@ def render_dashboard():
     with cols[1]:
         selected = option_menu(
             menu_title="DASHBOARD", 
-            options=["Log Workout", "Workout Data"],
+            options=["Log Data", "View Data"],
             icons=['pencil-square', 'activity'],
             default_index=0,
             orientation="horizontal",
@@ -54,15 +54,15 @@ def render_dashboard():
     progress_bar = st.progress(0)
     status_text = st.empty()
 
-    if selected == "Log Workout":
+    if selected == "Log Data":
         for percent_complete in range(101):
             progress_bar.progress(percent_complete)
-            status_text.text(f"Loading Log Workout: {percent_complete}%")
+            status_text.text(f"Loading Log Data: {percent_complete}%")
         render_log_workout_form()
-    elif selected == "Workout Data":
+    elif selected == "View Data":
         for percent_complete in range(101):
             progress_bar.progress(percent_complete)
-            status_text.text(f"Loading Workout Data: {percent_complete}%")
+            status_text.text(f"Loading View Data: {percent_complete}%")
         render_workout_data(metrics, workout_df)
 
     # Remove the progress bar and status text after loading
